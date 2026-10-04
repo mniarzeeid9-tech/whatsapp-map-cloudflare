@@ -68,7 +68,14 @@ export class RoomClient {
         this.self.name = name.trim().slice(0, 32);
         const creating = !roomCode;
         const requestedRoom = roomCode?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || createRoomCode();
-        const signalingUrl = new URL(SIGNALING_BASE);
+        let signalingUrl;
+        try {
+            signalingUrl = new URL(SIGNALING_BASE, window.location.origin);
+        }
+        catch {
+            this.options.onEvent({ type: 'error', message: 'إعداد خادم الاتصال غير صالح.' });
+            return;
+        }
         const protocol = signalingUrl.protocol === 'https:' ? 'wss:' : 'ws:';
         const socketUrl = new URL('/ws', `${protocol}//${signalingUrl.host}`);
         socketUrl.searchParams.set('room', requestedRoom);
@@ -80,7 +87,7 @@ export class RoomClient {
         });
         this.socket.addEventListener('message', event => this.handleServerMessage(event.data));
         this.socket.addEventListener('error', () => {
-            this.options.onEvent({ type: 'error', message: 'تعذر الوصول إلى قناة الاتصال. جرّب مرة أخرى.' });
+            this.options.onEvent({ type: 'error', message: 'تعذر الوصول إلى قناة الاتصال. تحقق من نشر Worker ثم جرّب مرة أخرى.' });
         });
         this.socket.addEventListener('close', () => {
             if (this.status !== 'idle')
@@ -328,6 +335,12 @@ export class RoomClient {
         return track.enabled;
     }
     stopMedia() {
+        for (const connection of this.connections.values()) {
+            for (const sender of connection.getSenders()) {
+                if (sender.track)
+                    connection.removeTrack(sender);
+            }
+        }
         for (const track of this.localStream?.getTracks() ?? [])
             track.stop();
         this.localStream = null;

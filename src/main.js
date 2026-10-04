@@ -9,6 +9,7 @@ let recording = null;
 let recordingChunks = [];
 let mediaStream = null;
 const renderedMessageIds = new Set();
+const APP_HOME = './';
 const icon = (name) => {
     const icons = {
         radio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5a8 8 0 0 1 16 0M7 12a5 5 0 0 1 10 0M10 14.5a2 2 0 0 1 4 0v.5a2 2 0 0 1-4 0v-.5ZM12 4v3"/></svg>',
@@ -36,7 +37,7 @@ function renderLanding() {
     <main class="landing-shell">
       <div class="landing-noise"></div>
       <header class="landing-nav">
-        <a class="brand" href="/" aria-label="واتساب ماب">
+        <a class="brand" href="./" aria-label="واتساب ماب">
           <span class="brand-mark">${icon('radio')}</span>
           <span><strong>واتساب</strong> <em>ماب</em></span>
         </a>
@@ -74,7 +75,7 @@ function renderLanding() {
         <div><span class="feature-index">02</span><strong>شارك الرابط</strong><small>بلا تسجيل أو بريد إلكتروني</small></div>
         <div><span class="feature-index">03</span><strong>ابدأ الحديث</strong><small>دردش، اتصل، وأرسل وسائط</small></div>
       </section>
-      <footer class="landing-footer"><span>مفتوح المصدر · اتصال مباشر · بلا جمع بيانات</span><a href="/privacy.html" target="_blank" rel="noreferrer">سياسة الخصوصية</a></footer>
+      <footer class="landing-footer"><span>مفتوح المصدر · اتصال مباشر · بلا جمع بيانات</span><a href="./privacy.html" target="_blank" rel="noreferrer">سياسة الخصوصية</a></footer>
     </main>
     <div class="modal-backdrop hidden" id="entry-modal">
       <section class="entry-modal" role="dialog" aria-modal="true" aria-labelledby="entry-title">
@@ -120,8 +121,8 @@ function startRoom(join) {
     const codeInput = document.querySelector('#join-code');
     myName = nameInput?.value.trim() || 'ضيف';
     const requestedCode = join ? codeInput?.value.trim().toUpperCase() : undefined;
-    if (join && (!requestedCode || requestedCode.length < 4)) {
-        showToast('أدخل رمز الغرفة أولاً.', 'warn');
+    if (join && (!requestedCode || requestedCode.length !== 6)) {
+        showToast('أدخل رمز الغرفة المكوّن من 6 أحرف.', 'warn');
         codeInput?.focus();
         return;
     }
@@ -184,11 +185,11 @@ function handleRoomEvent(event) {
 function renderRoom(peers, expiresIn) {
     renderedMessageIds.clear();
     const minutes = Math.max(1, Math.round(expiresIn / 60));
-    history.replaceState({}, '', `?room=${roomCode}`);
+    history.replaceState({}, '', `${APP_HOME}?room=${encodeURIComponent(roomCode)}`);
     app.innerHTML = `
     <main class="room-shell">
       <header class="room-topbar">
-        <a class="brand compact" href="/" id="home-link"><span class="brand-mark">${icon('radio')}</span><span><strong>واتساب</strong> <em>ماب</em></span></a>
+        <a class="brand compact" href="./" id="home-link"><span class="brand-mark">${icon('radio')}</span><span><strong>واتساب</strong> <em>ماب</em></span></a>
         <div class="room-id-wrap"><span class="room-label">القناة النشطة</span><strong class="room-id">${roomCode}</strong><span class="live-indicator"><i></i> مباشر</span></div>
         <div class="top-actions"><button class="secondary-btn share-btn" id="share-room">${icon('share')} مشاركة الدعوة</button><button class="danger-btn" id="leave-room">${icon('logout')} مغادرة</button></div>
       </header>
@@ -256,14 +257,19 @@ function updateConnectionStatus(status) {
     if (!node)
         return;
     const labels = { connecting: 'جاري الربط', connected: 'اتصال مباشر', disconnected: 'اتصال متقطع' };
+    const label = labels[status] ?? labels.disconnected;
     node.className = `connection-state ${status}`;
-    node.innerHTML = `<i></i><span>${labels[status]}</span>`;
+    node.innerHTML = `<i></i><span>${label}</span>`;
 }
 function sendText() {
     const input = document.querySelector('#message-input');
     const text = input?.value.trim() ?? '';
     if (!text || !client)
         return;
+    if (!client.peerList.length) {
+        showToast('انتظر انضمام شخص آخر إلى الغرفة قبل الإرسال.', 'warn');
+        return;
+    }
     const safeText = text.slice(0, 4000);
     const delivered = client.sendText(safeText);
     if (!delivered && client.peerList.length) {
@@ -279,6 +285,10 @@ function sendText() {
 async function sendFile(file, kind = 'file') {
     if (!client)
         return;
+    if (!client.peerList.length) {
+        showToast('انتظر انضمام شخص آخر إلى الغرفة قبل إرسال الملفات.', 'warn');
+        return;
+    }
     if (file.size > 5 * 1024 * 1024) {
         showToast('الحد الأقصى للملف المباشر 5 ميغابايت.', 'warn');
         return;
@@ -417,7 +427,7 @@ function leaveToHome() {
     client = null;
     roomCode = '';
     mediaStream = null;
-    history.replaceState({}, '', '/');
+    history.replaceState({}, '', APP_HOME);
     renderLanding();
 }
 function showToast(text, kind) {
@@ -427,7 +437,7 @@ function showToast(text, kind) {
     toastRegion.appendChild(toast);
     window.setTimeout(() => toast.remove(), 3600);
 }
-function escapeHtml(value) { return value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] ?? character); }
+function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] ?? character); }
 function safeUrl(value, mime = 'application/octet-stream') {
     const match = /^data:([a-z0-9.+-]+);base64,([a-z0-9+/=]+)$/i.exec(value);
     if (!match)

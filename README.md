@@ -43,6 +43,27 @@ pnpm dev
 npx wrangler@4.147.0 dev --local --port 8787
 ```
 
+## إعداد الإنتاج خطوة بخطوة
+
+### GitHub Pages
+
+1. افتح `Settings → Pages` واختر **GitHub Actions**.
+2. أضف متغير Actions باسم `SIGNALING_URL`، وضع فيه عنوان Worker مثل `https://whatsapp-map.example.workers.dev` من دون `/ws`.
+3. شغّل Workflow `Deploy static web app to GitHub Pages`.
+
+### Cloudflare Worker
+
+للنشر اليدوي:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run deploy:cloudflare
+```
+
+للنشر التلقائي، أضف Secrets باسم `CLOUDFLARE_API_TOKEN` و`CLOUDFLARE_ACCOUNT_ID` ثم شغّل Workflow `Deploy Cloudflare Worker`. استخدم API Token محدودًا بصلاحية **Edit Cloudflare Workers** ولا تضعه في الكود.
+
+الخطة المجانية لا تعني موارد غير محدودة؛ راقب حدود Workers وDurable Objects، خصوصًا عدد الاتصالات المتزامنة والرسائل.
+
 ## الملفات
 
 - `index.html`: صفحة HTML الرئيسية.

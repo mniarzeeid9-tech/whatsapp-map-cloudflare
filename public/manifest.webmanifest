@@ -2,7 +2,7 @@
   "name": "واتساب ماب",
   "short_name": "واتساب ماب",
   "description": "غرف اتصال مؤقتة بلا أثر.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "dir": "rtl",
   "lang": "ar",
@@ -10,10 +10,11 @@
   "background_color": "#09111f",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "./"
 }

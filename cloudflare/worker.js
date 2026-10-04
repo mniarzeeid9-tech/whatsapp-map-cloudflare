@@ -51,7 +51,8 @@ export class RoomHub {
     if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return json({ error: 'WebSocket upgrade required' }, 426)
     const [client, server] = Object.values(new WebSocketPair())
     server.accept()
-    const session = { socket: server, id: '', name: '', room: '', joined: false, left: false, windowStarted: Date.now(), messageCount: 0 }
+    const requestRoom = normalizeCode(new URL(request.url).searchParams.get('room'))
+    const session = { socket: server, id: '', name: '', room: requestRoom, joined: false, left: false, windowStarted: Date.now(), messageCount: 0 }
     server.addEventListener('message', event => void this.onMessage(session, event.data))
     server.addEventListener('close', () => this.leave(session))
     server.addEventListener('error', () => this.leave(session))
@@ -60,7 +61,7 @@ export class RoomHub {
 
   async onMessage(session, raw) {
     const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw)
-    if (text.length > MAX_PAYLOAD) { this.fail(session, 'حجم رسالة الإشارة أكبر من المسموح.', 1009); return }
+    if (new TextEncoder().encode(text).byteLength > MAX_PAYLOAD) { this.fail(session, 'حجم رسالة الإشارة أكبر من المسموح.', 1009); return }
     let message
     try { message = JSON.parse(text) } catch { this.fail(session, 'رسالة غير صالحة.'); return }
     if (!message || typeof message !== 'object' || typeof message.type !== 'string') { this.fail(session, 'بنية الرسالة غير صالحة.'); return }
@@ -68,11 +69,11 @@ export class RoomHub {
       if (session.joined) return
       const code = normalizeCode(message.room)
       const creating = message.create === true
-      if (!isRoomCode(code)) { this.fail(session, 'رمز الغرفة غير صالح.'); return }
+      if (!isRoomCode(code) || code !== session.room) { this.fail(session, 'رمز الغرفة غير صالح.'); return }
       if (creating && this.clients.size > 0) { this.fail(session, 'تعارض مؤقت في رمز الغرفة. أنشئ غرفة جديدة.'); return }
       if (!creating && this.clients.size === 0) { this.fail(session, 'لم نعثر على هذه الغرفة. تأكد من الرمز أو أنشئ غرفة جديدة.'); return }
       if (this.clients.size >= MAX_SESSIONS) { this.fail(session, 'الغرفة ممتلئة حالياً. جرّب رمزاً آخر.'); return }
-      session.id = randomId(); session.name = safeName(message.name); session.room = code; session.joined = true
+      session.id = randomId(); session.name = safeName(message.name); session.joined = true
       this.clients.set(session.id, session)
       this.armExpiry()
       this.send(session, { type: 'joined', room: code, peerId: session.id, peers: this.peerList(session.id), expiresIn: ROOM_TTL / 1000 })
