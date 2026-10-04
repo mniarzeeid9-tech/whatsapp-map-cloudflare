@@ -24,7 +24,7 @@
   function enterRoom(join = false) { const name = $('#nickname').value.trim() || 'ضيف'; const code = $('#join-code').value.trim().toUpperCase(); if (name.length < 2) { toast('اكتب اسماً قصيراً ليظهر في المساحة.', 'warn'); return; } if (join && code.length !== 6) { toast('أدخل رمزاً من 6 أحرف.', 'warn'); return; } state.name = name; state.room = join ? code : makeCode(); loadRoom(); closeModal(); showRoom(); history.replaceState({}, '', `./?room=${encodeURIComponent(state.room)}`); toast(join ? 'تم فتح المساحة محلياً.' : 'تم إنشاء مساحة جديدة على جهازك.', 'ok'); }
   function renderMessages() { const list = $('#messages'); list.innerHTML = ''; if (!state.messages.length) { list.innerHTML = `<div class="welcome-message"><span>${icon('wave')}</span><h2>أهلاً بك في مساحتك</h2><p>اكتب فكرة، ارفع ملفاً، أو افتح معاينة الوسائط. هذه المساحة خاصة بهذا الجهاز.</p></div>`; return; } state.messages.forEach(renderMessage); list.scrollTop = list.scrollHeight; }
   function renderMessage(message) { const list = $('#messages'); const item = document.createElement('article'); item.className = `message ${message.mine ? 'mine' : ''}`; const time = new Intl.DateTimeFormat('ar', { hour:'2-digit', minute:'2-digit' }).format(new Date(message.time)); let content = message.kind === 'file' ? `<div class="file-message">${icon('paperclip')}<div>${escapeHtml(message.name)}<span>${formatBytes(message.size)}</span></div></div>` : `<p>${escapeHtml(message.text)}</p>`; item.innerHTML = `<div class="message-meta"><strong>${escapeHtml(message.mine ? 'أنت' : message.name)}</strong><time>${time}</time></div>${content}`; list.appendChild(item); }
-  function sendText(event) { event.preventDefault(); const input = $('#message-input'); const text = input.value.trim(); if (!text) return; state.messages.push({ kind:'text', text:text.slice(0, 4000), name:state.name, mine:true, time:Date.now() }); saveRoom(); if ($('#messages .welcome-message')) $('#messages').innerHTML = ''; renderMessage(state.messages[state.messages.length - 1]); input.value = ''; input.style.height = 'auto'; $('#messages').scrollTop = $('#messages').scrollHeight; }
+  function sendText(event) { event.preventDefault(); const input = $('#message-input'); const text = input.value.trim(); if (!text) return; state.messages.push({ kind:'text', text:text.slice(0, 4000), name:state.name, mine:true, time:Date.now() }); saveRoom(); if (window.MoujaRadio?.connected) window.MoujaRadio.sendText(text.slice(0, 200)); if ($('#messages .welcome-message')) $('#messages').innerHTML = ''; renderMessage(state.messages[state.messages.length - 1]); input.value = ''; input.style.height = 'auto'; $('#messages').scrollTop = $('#messages').scrollHeight; }
   function sendFile(file) { if (!file) return; if (file.size > 5 * 1024 * 1024) { toast('الحد الأقصى للملف 5 ميغابايت.', 'warn'); return; } state.messages.push({ kind:'file', name:file.name || 'ملف', size:file.size, mine:true, time:Date.now() }); saveRoom(); if ($('#messages .welcome-message')) $('#messages').innerHTML = ''; renderMessage(state.messages[state.messages.length - 1]); $('#messages').scrollTop = $('#messages').scrollHeight; toast('أُضيف الملف إلى مساحتك المحلية.','ok'); }
   async function startMedia(kind) { if (!navigator.mediaDevices?.getUserMedia) { toast('المتصفح لا يدعم الوصول إلى الوسائط.', 'warn'); return; } try { state.stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:kind === 'video' }); const video = $('#local-video'); video.srcObject = state.stream; $('#media-preview').classList.remove('hidden'); toast(kind === 'video' ? 'تم تشغيل معاينة الكاميرا محلياً.' : 'تم تشغيل معاينة الميكروفون محلياً.','ok'); } catch { toast('لم نتمكن من الوصول إلى الجهاز. تحقق من الإذن.','warn'); } }
   function stopMedia() { state.stream?.getTracks().forEach((track) => track.stop()); state.stream = null; const video = $('#local-video'); if (video) video.srcObject = null; $('#media-preview')?.classList.add('hidden'); }
@@ -32,6 +32,33 @@
   async function copyInvite() { const url = `${location.origin}${location.pathname}?room=${state.room}`; try { await navigator.clipboard.writeText(url); toast('تم نسخ رابط المساحة.','ok'); } catch { toast(`رمز المساحة: ${state.room}`,'ok'); } }
 
   $('#nav-start').addEventListener('click', openModal); $('#hero-start').addEventListener('click', openModal); $('#close-modal').addEventListener('click', closeModal); $('#entry-modal').addEventListener('click', (event) => event.target === $('#entry-modal') && closeModal()); $('#create-room').addEventListener('click', () => enterRoom(false)); $('#join-room').addEventListener('click', () => enterRoom(true)); $('#join-code').addEventListener('input', (event) => { event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); }); $('#composer').addEventListener('submit', sendText); $('#message-input').addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('#composer').requestSubmit(); } }); $('#message-input').addEventListener('input', (event) => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(event.target.scrollHeight, 110)}px`; }); $('#attach-file').addEventListener('click', () => $('#file-input').click()); $('#file-input').addEventListener('change', (event) => { sendFile(event.target.files[0]); event.target.value = ''; }); $('#voice-note').addEventListener('click', toggleVoice); $('#audio-preview').addEventListener('click', () => startMedia('audio')); $('#video-preview').addEventListener('click', () => startMedia('video')); $('#stop-media').addEventListener('click', stopMedia); $('#share-room').addEventListener('click', copyInvite); $('#copy-code').addEventListener('click', async () => { try { await navigator.clipboard.writeText(state.room); toast('تم نسخ الرمز.','ok'); } catch { toast(state.room,'ok'); } }); $('#leave-room').addEventListener('click', showLanding); $('#room-home').addEventListener('click', showLanding); window.addEventListener('beforeunload', stopMedia);
+  const openRadioModal = () => $('#radio-modal').classList.remove('hidden');
+  const closeRadioModal = () => $('#radio-modal').classList.add('hidden');
+  $('#radio-connect')?.addEventListener('click', openRadioModal);
+  $('#intro-radio')?.addEventListener('click', openRadioModal);
+  $('#close-radio-modal')?.addEventListener('click', closeRadioModal);
+  $('#radio-modal')?.addEventListener('click', (event) => event.target === $('#radio-modal') && closeRadioModal());
+  $('#connect-radio')?.addEventListener('click', async () => {
+    const host = $('#radio-host').value.trim();
+    if (!host) { toast('أدخل عنوان عقدة Meshtastic أولاً.', 'warn'); return; }
+    const button = $('#connect-radio'); button.disabled = true; button.textContent = 'جارٍ الاتصال…';
+    try { await window.MoujaRadio.connectHttp(host, $('#radio-tls').checked); closeRadioModal(); toast('تم الاتصال بعقدة الراديو.', 'ok'); }
+    catch (error) { toast(`تعذر الاتصال: ${error?.message || 'تحقق من العنوان والشبكة.'}`, 'warn'); }
+    finally { button.disabled = false; button.innerHTML = 'اتصال بالعقدة <span>↗</span>'; }
+  });
+  window.addEventListener('radio-status', (event) => {
+    const connected = event.detail?.connected;
+    const status = $('#radio-status'); const title = $('#radio-card-title'); const subtitle = $('#radio-card-subtitle');
+    if (connected) { status.innerHTML = '<i></i> متصل بالراديو'; status.classList.add('is-connected'); title.textContent = event.detail.nodeName || 'عقدة Meshtastic'; subtitle.textContent = 'متصل عبر HTTP · ESP32'; }
+    else { status.innerHTML = '<i></i> غير متصل'; status.classList.remove('is-connected'); }
+  });
+  window.addEventListener('radio-message', (event) => {
+    const packet = event.detail || {}; const text = packet.data || packet.text; if (!text) return;
+    state.messages.push({ kind:'text', text, name: packet.fromName || `العقدة ${packet.from ?? ''}`, mine:false, time:Date.now(), radio:true });
+    saveRoom(); if ($('#messages .welcome-message')) $('#messages').innerHTML = ''; renderMessage(state.messages[state.messages.length - 1]); $('#messages').scrollTop = $('#messages').scrollHeight;
+  });
+  window.addEventListener('radio-nodes', (event) => { const count = event.detail?.count ?? 0; $('#node-count').textContent = count; });
+  window.addEventListener('radio-location', (event) => { $('#location-state').textContent = event.detail ? 'متاح' : '—'; });
   document.querySelectorAll('[data-mobile-action]').forEach((button) => button.addEventListener('click', () => {
     document.querySelectorAll('[data-mobile-action]').forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
@@ -39,6 +66,5 @@
     if (action === 'media') $('#media-preview').scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (action === 'info') toast('هذه مساحة محلية: بياناتك لا تغادر هذا المتصفح.', 'ok');
   }));
-
   const queryRoom = new URLSearchParams(location.search).get('room'); if (queryRoom && queryRoom.length === 6) { $('#join-code').value = queryRoom.toUpperCase(); openModal(); }
 })();
