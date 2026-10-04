@@ -1,21 +1,54 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#09111f" />
-    <meta name="referrer" content="no-referrer" />
-    <meta name="description" content="واتساب ماب — غرف اتصال مؤقتة مباشرة للصوت والفيديو والدردشة، بلا حسابات أو سجل دائم." />
-    <meta name="application-name" content="واتساب ماب" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <title>واتساب ماب — اتصال بلا أثر</title>
-  </head>
-  <body>
-    <div id="app" aria-live="polite"></div>
-    <div id="toast-region" class="toast-region" aria-live="assertive" aria-atomic="true"></div>
-    <script type="module" src="./src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="موجة — مساحة خاصة للحديث والمشاركة من متصفحك، بلا حسابات ولا خادم.">
+  <meta name="application-name" content="موجة">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <title>موجة — احكوا بلا أثر</title>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="site-nav shell">
+    <a class="brand" href="./" aria-label="موجة، الصفحة الرئيسية"><span class="brand-mark">⌁</span><span>موجة<small>مساحة خاصة</small></span></a>
+    <nav class="nav-links" aria-label="التنقل"><a href="#how">كيف تعمل؟</a><a href="./privacy.html">الخصوصية</a></nav>
+    <button class="nav-cta" id="nav-start">ابدأ الآن <span>↗</span></button>
+  </header>
+
+  <main id="landing-view" class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><i></i> مساحة هادئة على جهازك</p>
+        <h1>احكوا مع بعض،<br><em>بلا ضجيج.</em></h1>
+        <p class="hero-text">أنشئ مساحة مؤقتة لك ولأصدقائك. اكتبوا، شاركوا، وسجّلوا لحظتكم — من دون حسابات أو تعقيد.</p>
+        <div class="hero-actions"><button class="button button-primary" id="hero-start">أنشئ مساحتك <span>↗</span></button><a class="button button-quiet" href="#how">اكتشف الفكرة <span>↓</span></a></div>
+        <div class="proof-row"><span><b>01</b> لا تسجيل</span><span><b>02</b> لا إعلانات</span><span><b>03</b> يعمل محلياً</span></div>
+      </div>
+      <div class="hero-card" aria-label="معاينة مساحة موجة">
+        <div class="card-top"><span class="live-dot"></span><span>مساحة خاصة</span><strong>LOCAL / 01</strong></div>
+        <div class="signal-art"><span class="signal-ring ring-1"></span><span class="signal-ring ring-2"></span><span class="signal-ring ring-3"></span><div class="signal-core">⌁</div></div>
+        <div class="preview-chat"><div class="mini-avatar">س</div><div><strong>سارة</strong><p>وصلت! نبدأ؟</p></div><time>الآن</time></div>
+        <div class="card-foot"><span>جلسة مؤقتة</span><span class="lock">⌑ مشفّرة محلياً</span></div>
+      </div>
+    </section>
+    <section id="how" class="how-section"><div class="section-heading"><p class="eyebrow">بسيطة من البداية</p><h2>ثلاث خطوات،<br><em>ومساحتك جاهزة.</em></h2></div><div class="steps"><article><b>01</b><span class="step-icon">✦</span><h3>اصنع رمزاً</h3><p>اختَر اسماً وولّد رمزاً قصيراً لمساحتك الحالية.</p></article><article><b>02</b><span class="step-icon">↗</span><h3>شاركه بثقة</h3><p>انسخ الرابط أو الرمز وأرسله لمن تريد داخل جهازك.</p></article><article><b>03</b><span class="step-icon">◌</span><h3>ابدأ الحديث</h3><p>دردشة، ملفات، ومعاينة صوت وصورة — بلا حساب.</p></article></div></section>
+    <section class="note-section"><div class="note-icon">!</div><div><strong>نسخة ثابتة، خصوصية واضحة</strong><p>هذه النسخة تعمل بالكامل داخل المتصفح ولا تتصل بخادم. المساحة والدردشة محفوظتان محلياً على جهازك فقط، لذلك لا يمكنها التواصل مع أجهزة أخرى.</p></div></section>
+  </main>
+  <footer class="site-footer shell"><span>موجة · مساحة صغيرة للكلام الكبير</span><a href="./privacy.html">اقرأ سياسة الخصوصية</a></footer>
+
+  <main id="room-view" class="room-view hidden">
+    <header class="room-nav shell"><button class="brand brand-button" id="room-home"><span class="brand-mark">⌁</span><span>موجة<small>مساحة خاصة</small></span></button><div class="room-title"><span>مساحتك الحالية</span><strong id="room-code-label">------</strong></div><div class="room-actions"><button class="icon-button" id="share-room" title="نسخ رابط المساحة">↗</button><button class="leave-button" id="leave-room">خروج</button></div></header>
+    <div class="room-layout shell"><aside class="room-sidebar"><div class="space-card"><p class="eyebrow">رمز المساحة</p><strong id="room-code-big">------</strong><p>احفظه أو شاركه مع من بجانبك على نفس الجهاز.</p><button class="button button-outline full" id="copy-code">نسخ الرمز</button></div><div class="local-status"><span class="status-icon">⌂</span><div><strong>وضع محلي</strong><small>لا يوجد خادم أو مزامنة خارجية</small></div></div><div class="people-box"><div class="box-heading"><span>الحاضرون</span><b>1</b></div><div class="person"><span class="person-avatar" id="person-avatar">أ</span><span id="person-name">أنت</span><i></i></div></div><p class="sidebar-note">كل ما تكتبه يبقى في هذا المتصفح فقط. يمكنك مسح المساحة من زر الخروج.</p></aside>
+      <section class="chat-area"><div class="chat-heading"><div><p class="eyebrow">مساحة شخصية</p><h1>موجة اليوم</h1></div><span class="connection-pill"><i></i> يعمل محلياً</span></div><div id="messages" class="messages"><div class="welcome-message"><span>⌁</span><h2>أهلاً بك في مساحتك</h2><p>اكتب فكرة، ارفع ملفاً، أو افتح معاينة الوسائط. هذه المساحة خاصة بهذا الجهاز.</p></div></div><form id="composer" class="composer"><input id="file-input" type="file" hidden><button type="button" class="tool-button" id="attach-file" title="إضافة ملف">＋</button><button type="button" class="tool-button" id="voice-note" title="تسجيل صوت">◉</button><textarea id="message-input" rows="1" placeholder="اكتب شيئاً…" aria-label="رسالتك"></textarea><button class="send-button" aria-label="إرسال">↑</button></form><div class="media-bar"><span>معاينة الوسائط على جهازك</span><button id="audio-preview" class="media-button">◖ صوت</button><button id="video-preview" class="media-button">▣ فيديو</button></div><div id="media-preview" class="media-preview hidden"><video id="local-video" autoplay muted playsinline></video><button id="stop-media" class="stop-media">إيقاف المعاينة</button></div></section>
+    </div>
+  </main>
+
+  <div id="entry-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-card"><button class="modal-close" id="close-modal" aria-label="إغلاق">×</button><span class="modal-symbol">⌁</span><p class="eyebrow">ابدأ بهدوء</p><h2 id="modal-title">أنشئ مساحتك</h2><p class="modal-intro">اكتب اسماً مستعاراً لهذه الجلسة. لا نطلب حساباً ولا نرسل الاسم إلى أي مكان.</p><label for="nickname">اسمك في المساحة</label><input id="nickname" maxlength="32" placeholder="مثلاً: سامر" autocomplete="off"><button class="button button-primary full" id="create-room">إنشاء مساحة <span>↗</span></button><div class="or"><span>أو افتح رمزاً محفوظاً</span></div><div class="join-row"><input id="join-code" maxlength="6" placeholder="A7K2P9" autocomplete="off"><button class="button button-outline" id="join-room">فتح</button></div><small class="modal-hint">هذه نسخة تعمل محلياً؛ لا يمكنها ربط أجهزة مختلفة.</small></div></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "name": "موجة — مساحة خاصة",
+  "short_name": "موجة",
+  "description": "مساحة محلية هادئة للكتابة والمشاركة.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "theme_color": "#0b1220",
+  "background_color": "#0b1220",
+  "icons": [{"src":"./assets/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

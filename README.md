@@ -1,78 +1,51 @@
-# واتساب ماب — نسخة Cloudflare HTML/CSS/JavaScript
+# موجة — نسخة HTML/CSS/JavaScript ثابتة
 
-نسخة تسليم مستقلة تستخدم HTML وCSS وJavaScript عادي في الواجهة، مع Cloudflare Worker وDurable Object للغرف المؤقتة.
+موجة واجهة عربية هادئة لمساحة كتابة ومشاركة محلية. هذه النسخة مبنية من الصفر بملفات **HTML وCSS وJavaScript فقط**، ولا تحتوي على Worker أو خادم أو قاعدة بيانات أو حزم خارجية.
 
-## النشر على GitHub Pages
+## ما تعمل عليه
 
-يمكن نشر الواجهة تلقائياً من خلال ملف GitHub Actions الموجود في `.github/workflows/pages.yml`. فعّل GitHub Pages من إعدادات المستودع باختيار **GitHub Actions** كمصدر.
+- إنشاء مساحة برمز قصير.
+- فتح مساحة محفوظة محلياً.
+- دردشة نصية داخل المتصفح.
+- إضافة ملفات إلى سجل المساحة المحلي.
+- معاينة كاميرا وميكروفون محلية بعد إذن المستخدم.
+- تسجيل صوتي محلي داخل الصفحة.
+- نسخ رابط ورمز المساحة.
+- تصميم متجاوب للهاتف والكمبيوتر.
+- قابلية تثبيت PWA من GitHub Pages.
 
-> تنبيه: GitHub Pages استضافة ملفات ثابتة فقط، ولا تشغّل WebSocket أو Durable Object. لذلك يلزم ضبط متغير المستودع `SIGNALING_URL` على عنوان Worker عام حتى تعمل الغرف والمكالمات والرسائل بين الأجهزة. بدون ذلك ستظهر الواجهة فقط.
+## حد تقني مقصود
 
-## النشر الكامل على Cloudflare Workers
-
-1. فك الضغط.
-2. ثبّت Wrangler أو استخدم الأمر المرفق:
-
-```bash
-npx wrangler@4.147.0 login
-npx wrangler@4.147.0 deploy
-```
-
-ملف `dist/` موجود مسبقاً، و`wrangler.toml` يربط الأصول الثابتة مع Worker وDurable Object. لا يحتاج المشروع إلى D1 أو KV أو R2.
-
-## إعادة البناء من المصدر
-
-```bash
-pnpm install
-pnpm build
-npx wrangler@4.147.0 deploy
-```
+بدون خادم لا يمكن لموقع HTML/CSS/JavaScript الثابت أن يربط أجهزة مختلفة أو ينشئ دردشة ومكالمات حقيقية بين مستخدمين عن بُعد. لذلك تعرض الواجهة هذا الحد بوضوح وتعمل الوظائف داخل المتصفح وعلى الجهاز نفسه فقط.
 
 ## التشغيل المحلي
 
-للتشغيل كواجهة فقط:
+لا تحتاج إلى Node.js أو npm. شغّل خادماً ثابتاً بسيطاً، لأن بعض المتصفحات تمنع الكاميرا والميكروفون من `file://`:
 
 ```bash
-pnpm install
-pnpm dev
+python3 -m http.server 8080
 ```
 
-ولتجربة Worker وWebSocket وDurable Object محلياً:
+ثم افتح:
 
-```bash
-npx wrangler@4.147.0 dev --local --port 8787
+```text
+http://localhost:8080
 ```
 
-## إعداد الإنتاج خطوة بخطوة
+## النشر على GitHub Pages
 
-### GitHub Pages
+1. ارفع الملفات إلى مستودع عام.
+2. افتح `Settings → Pages`.
+3. اختر النشر من فرع `main` ومجلد `/ (root)`، أو أضف Workflow بسيطاً للنشر.
+4. افتح رابط GitHub Pages الناتج.
 
-1. افتح `Settings → Pages` واختر **GitHub Actions**.
-2. أضف متغير Actions باسم `SIGNALING_URL`، وضع فيه عنوان Worker مثل `https://whatsapp-map.example.workers.dev` من دون `/ws`.
-3. شغّل Workflow `Deploy static web app to GitHub Pages`.
-
-### Cloudflare Worker
-
-للنشر اليدوي:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm run deploy:cloudflare
-```
-
-للنشر التلقائي، أضف Secrets باسم `CLOUDFLARE_API_TOKEN` و`CLOUDFLARE_ACCOUNT_ID` ثم شغّل Workflow `Deploy Cloudflare Worker`. استخدم API Token محدودًا بصلاحية **Edit Cloudflare Workers** ولا تضعه في الكود.
-
-الخطة المجانية لا تعني موارد غير محدودة؛ راقب حدود Workers وDurable Objects، خصوصًا عدد الاتصالات المتزامنة والرسائل.
+لا توجد متغيرات بيئة أو أسرار أو إعدادات خادم مطلوبة.
 
 ## الملفات
 
-- `index.html`: صفحة HTML الرئيسية.
-- `src/main.js`: منطق الواجهة والتفاعل.
-- `src/room.js`: WebRTC وWebSocket للغرف.
-- `src/styles/main.css`: التصميم المتجاوب.
-- `cloudflare/worker.js`: Worker وRoomHub Durable Object.
-- `wrangler.toml`: إعداد Cloudflare.
-- `dist/`: نسخة البناء الجاهزة للنشر.
-- `PRIVACY.md` و`SECURITY.md`: الخصوصية وحدود الأمان.
-
-لا يحتوي هذا الإصدار على `node_modules` أو ملفات مؤقتة أو أسرار حساب Cloudflare.
+- `index.html`: هيكل الصفحة والواجهات.
+- `styles.css`: الهوية البصرية والاستجابة.
+- `app.js`: كل التفاعلات والتخزين المحلي والوسائط.
+- `privacy.html`: صفحة الخصوصية والحدود التقنية.
+- `manifest.webmanifest`: إعداد التثبيت كتطبيق.
+- `assets/icon.svg`: أيقونة موجة.
